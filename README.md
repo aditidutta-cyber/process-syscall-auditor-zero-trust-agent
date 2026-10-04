@@ -1,58 +1,48 @@
 # Process Syscall Auditor & Zero-Trust Behavioral Agent
 
-## 1. Project Overview
+## Domain
+**Domain 4: Cybersecurity, Observability & Forensics**
 
-Process Syscall Auditor & Zero-Trust Behavioral Agent is a Linux-based security monitoring project developed using C and C++.
+## Project Overview
 
-The system monitors process execution activity inside the Linux kernel and sends captured event information to a user-space C++ security agent.
+The Process Syscall Auditor & Zero-Trust Behavioral Agent is a Linux-based security monitoring prototype that observes process execution events at the kernel level and analyzes them in user space.
 
-The C++ agent performs basic behavioral analysis, assigns a risk score, determines a risk level, and stores the result in an audit log.
+The system uses a Linux kernel module with a Kprobe attached to the `execve` system-call path. Execution events are exposed through the `/dev/process_auditor` character device and consumed by a C++17 behavioral analysis agent.
 
-## 2. Objectives
+The C++ agent matches observed events against security profiles, calculates a risk score, determines a risk level, and produces a security decision.
 
-- Monitor process execution activity in Linux.
-- Capture process information from the kernel.
-- Demonstrate Linux kernel module concepts.
-- Provide a user-space C++ security agent.
-- Apply basic zero-trust behavioral rules.
-- Generate risk levels for observed events.
-- Maintain an audit log.
-
-## 3. System Architecture
+## Architecture
 
 ```text
-Linux Process
-      |
-      v
-   execve()
-      |
-      v
-+-----------------------+
-| Linux Kernel Module   |
-| process_auditor       |
-+-----------+-----------+
-            |
-            v
+Running Processes
+        |
+        v
+   execve() event
+        |
+        v
++----------------------+
+| Linux Kernel Module  |
+|   process_auditor    |
+|       Kprobe         |
++----------------------+
+        |
+        v
  /dev/process_auditor
-            |
-            v
-+-----------------------+
-| C++ Security Agent   |
-| auditor_agent        |
-+-----------+-----------+
-            |
-            v
-   Behavioral Analysis
-            |
-            v
-       Risk Score
-            |
-      +-----+------+
-      |            |
-      v            v
-    ALLOW        MONITOR
-      |            |
-      +-----+------+
-            |
-            v
-        audit.log
+        |
+        v
++----------------------+
+| C++17 Behavioral     |
+| Analysis Agent       |
++----------------------+
+        |
+        v
+ Security Profile
+        |
+        v
+ Risk Score / Level
+        |
+        v
+ ALLOW / MONITOR / ALERT
+        |
+        v
+     audit.log
